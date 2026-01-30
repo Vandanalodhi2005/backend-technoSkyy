@@ -34,7 +34,9 @@ contactEmail.verify((error) => {
 });
 
 // --- ROUTES ---
-
+app.get("/", (req, res) => {
+    res.send("Techno Skyy Backend is running.");
+});
 // 1. Contact Form Endpoint
 app.post("/api/send-mail", async (req, res) => {
     const { fullName, email, country, service, message } = req.body;
