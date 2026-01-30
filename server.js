@@ -13,21 +13,21 @@ app.use(express.json());
 // Email Configuration
 const contactEmail = nodemailer.createTransport({
     host: process.env.EMAIL_HOST,
-    port: process.env.EMAIL_PORT,
-    secure: true, // true for 465, false for other ports
+    port: 587, // Using 587 for STARTTLS
+    secure: false, // false for 587
     auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS,
     },
     tls: {
-        rejectUnauthorized: false
+        rejectUnauthorized: false, // Trust self-signed certificates
+        minVersion: 'TLSv1.2'
     }
 });
 
 contactEmail.verify((error) => {
     if (error) {
-        console.error("❌ Error verifying email transporter:", error);
-        console.log("👉 Check if your EMAIL_HOST, EMAIL_PORT, and EMAIL_PASS are correct in .env");
+        console.error("❌ SMTP Verification Error:", error.message);
     } else {
         console.log("✅ SMTP Server is ready to take our messages");
     }
@@ -65,7 +65,7 @@ app.post("/api/send-mail", async (req, res) => {
         res.status(200).json({ status: "Message Sent Successfully" });
     } catch (error) {
         console.error("Error sending contact email:", error);
-        res.status(500).json({ error: "Failed to send message" });
+        res.status(500).json({ error: "Failed to send message", details: error.message });
     }
 });
 
@@ -106,7 +106,7 @@ app.post("/api/apply", async (req, res) => {
         res.status(200).json({ status: "Application Submitted Successfully" });
     } catch (error) {
         console.error("Error sending application email:", error);
-        res.status(500).json({ error: "Failed to send application" });
+        res.status(500).json({ error: "Failed to send application", details: error.message });
     }
 });
 
