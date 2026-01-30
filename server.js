@@ -12,7 +12,9 @@ app.use(express.json());
 
 // Email Configuration
 const contactEmail = nodemailer.createTransport({
-    service: 'gmail',
+    host: process.env.EMAIL_HOST,
+    port: process.env.EMAIL_PORT,
+    secure: true, // true for 465, false for other ports
     auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS,
@@ -21,15 +23,10 @@ const contactEmail = nodemailer.createTransport({
 
 contactEmail.verify((error) => {
     if (error) {
-        if (error.responseCode === 535) {
-            console.error("❌ ERROR: Email authentication failed!");
-            console.error("👉 CAUSE: The password in .env is incorrect or not an App Password.");
-            console.error("👉 FIX: Generate a new App Password at https://myaccount.google.com/apppasswords and update the EMAIL_PASS in your .env file.");
-        } else {
-            console.error("❌ Error verifying email transporter:", error);
-        }
+        console.error("❌ Error verifying email transporter:", error);
+        console.log("👉 Check if your EMAIL_HOST, EMAIL_PORT, and EMAIL_PASS are correct in .env");
     } else {
-        console.log("✅ Ready to Send Emails");
+        console.log("✅ SMTP Server is ready to take our messages");
     }
 });
 
@@ -46,8 +43,8 @@ app.post("/api/send-mail", async (req, res) => {
     }
 
     const mailOptions = {
-        from: fullName,
-        to: "vandanarajpoot69@gmail.com",
+        from: `"${fullName}" <${process.env.EMAIL_USER}>`,
+        to: "support@technoskysolution.com",
         subject: `Techno Skyy: New Contact Form Submission - ${service || 'General'}`,
         html: `
       <h3>New Contact Form Submission</h3>
@@ -81,8 +78,8 @@ app.post("/api/apply", async (req, res) => {
     }
 
     const mailOptions = {
-        from: fullName,
-        to: "vandanarajpoot69@gmail.com",
+        from: `"${fullName}" <${process.env.EMAIL_USER}>`,
+        to: "support@technoskysolution.com",
         subject: `Techno Skyy: Job Application - ${position}`,
         html: `
       <h3>New Job Application</h3>
