@@ -13,28 +13,25 @@ app.use(express.json());
 // Email Configuration (SMTP - cPanel)
 const transporter = nodemailer.createTransport({
     host: process.env.EMAIL_HOST,
-    port: parseInt(process.env.EMAIL_PORT || "465"),
-    secure: process.env.EMAIL_PORT === "465", // true for 465, false for other ports
+    port: parseInt(process.env.EMAIL_PORT),
+    secure: process.env.EMAIL_PORT === "465",
     auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS,
     },
-    pool: true, // Use pooled connections
-    maxConnections: 5,
-    maxMessages: 100,
     tls: {
-        rejectUnauthorized: false // Trust cPanel self-signed certs if necessary
+        rejectUnauthorized: false
     }
 });
 
 const RECEIVER_EMAIL = "support@technoskysolution.com";
 
-// Verify SMTP Connection
+// Verify SMTP Connection on Startup
 transporter.verify((error, success) => {
     if (error) {
-        console.error("❌ SMTP Connection Error:", error);
+        console.error("❌ SMTP Auth Error:", error.message);
     } else {
-        console.log("✅ SMTP Server is ready (cPanel)");
+        console.log("✅ SMTP Server is ready for support@technoskysolution.com");
     }
 });
 
