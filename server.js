@@ -6,12 +6,16 @@ const app = express();
 
 // ✅ MUST be BEFORE routes
 app.use(cors({
-    origin: "http://localhost:5173",
+    origin: "https://technoskysolution.com",
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     credentials: true,
 }));
 
 app.use(express.json());
+
+app.get("/", (req, res) => {
+    res.send("Hello World!");
+});
 
 // routes
 app.use("/api", require("./routes/mailRoutes"));
