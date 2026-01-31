@@ -6,7 +6,7 @@ const app = express();
 
 // ✅ MUST be BEFORE routes
 app.use(cors({
-    origin: "https://technoskysolution.com",
+    origin: ["https://technoskysolution.com", "http://localhost:5173"],
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     credentials: true,
 }));
