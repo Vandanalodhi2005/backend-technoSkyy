@@ -10,26 +10,31 @@ const PORT = process.env.PORT || 5002;
 app.use(cors());
 app.use(express.json());
 
-// Email Configuration
-const contactEmail = nodemailer.createTransport({
+// Email Configuration (SMTP - cPanel)
+const transporter = nodemailer.createTransport({
     host: process.env.EMAIL_HOST,
-    port: 587, // Using 587 for STARTTLS
-    secure: false, // false for 587
+    port: parseInt(process.env.EMAIL_PORT || "465"),
+    secure: process.env.EMAIL_PORT === "465", // true for 465, false for other ports
     auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS,
     },
+    pool: true, // Use pooled connections
+    maxConnections: 5,
+    maxMessages: 100,
     tls: {
-        rejectUnauthorized: false, // Trust self-signed certificates
-        minVersion: 'TLSv1.2'
+        rejectUnauthorized: false // Trust cPanel self-signed certs if necessary
     }
 });
 
-contactEmail.verify((error) => {
+const RECEIVER_EMAIL = "support@technoskysolution.com";
+
+// Verify SMTP Connection
+transporter.verify((error, success) => {
     if (error) {
-        console.error("❌ SMTP Verification Error:", error.message);
+        console.error("❌ SMTP Connection Error:", error);
     } else {
-        console.log("✅ SMTP Server is ready to take our messages");
+        console.log("✅ SMTP Server is ready (cPanel)");
     }
 });
 
@@ -47,7 +52,8 @@ app.post("/api/send-mail", async (req, res) => {
 
     const mailOptions = {
         from: `"${fullName}" <${process.env.EMAIL_USER}>`,
-        to: "support@technoskysolution.com",
+        to: RECEIVER_EMAIL,
+        replyTo: email,
         subject: `Techno Skyy: New Contact Form Submission - ${service || 'General'}`,
         html: `
       <h3>New Contact Form Submission</h3>
@@ -61,11 +67,14 @@ app.post("/api/send-mail", async (req, res) => {
     };
 
     try {
-        await contactEmail.sendMail(mailOptions);
+        await transporter.sendMail(mailOptions);
         res.status(200).json({ status: "Message Sent Successfully" });
     } catch (error) {
         console.error("Error sending contact email:", error);
-        res.status(500).json({ error: "Failed to send message", details: error.message });
+        res.status(500).json({
+            error: "Failed to send message",
+            details: error.message
+        });
     }
 });
 
@@ -82,7 +91,8 @@ app.post("/api/apply", async (req, res) => {
 
     const mailOptions = {
         from: `"${fullName}" <${process.env.EMAIL_USER}>`,
-        to: "support@technoskysolution.com",
+        to: RECEIVER_EMAIL,
+        replyTo: email,
         subject: `Techno Skyy: Job Application - ${position}`,
         html: `
       <h3>New Job Application</h3>
@@ -102,11 +112,14 @@ app.post("/api/apply", async (req, res) => {
     };
 
     try {
-        await contactEmail.sendMail(mailOptions);
+        await transporter.sendMail(mailOptions);
         res.status(200).json({ status: "Application Submitted Successfully" });
     } catch (error) {
         console.error("Error sending application email:", error);
-        res.status(500).json({ error: "Failed to send application", details: error.message });
+        res.status(500).json({
+            error: "Failed to send application",
+            details: error.message
+        });
     }
 });
 
